@@ -1,0 +1,97 @@
+#include<stdio.h>
+
+struct Process {
+    int pid;  // Process ID
+    int burst_time; // Burst time
+    int arrival_time; // Arrival time
+    int priority; // Priority
+    int remaining_time; // Remaining time
+};
+
+void swap(struct Process *xp, struct Process *yp) {
+    struct Process temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+
+// Function to perform selection sort based on priority
+void sort_by_priority(struct Process proc[], int n) {
+    int i, j;
+    for (i = 0; i < n-1; i++)       
+        for (j = 0; j < n-i-1; j++)
+            if (proc[j].priority > proc[j+1].priority)
+                swap(&proc[j], &proc[j+1]);
+}
+
+// Function to find the process with highest priority among the arrived processes
+int findHighestPriority(struct Process proc[], int n, int current_time) {
+    int highest_priority = 9999; // A high value to find minimum priority
+    int index = -1; // Index of the highest priority process
+    for(int i = 0; i < n; i++) {
+        if(proc[i].arrival_time <= current_time && proc[i].remaining_time > 0 && proc[i].priority < highest_priority) {
+            highest_priority = proc[i].priority;
+            index = i;
+        }
+    }
+    return index;
+}
+
+void preemptive_priority_scheduling(struct Process proc[], int n) {
+    int total_time = 0;
+    int completed = 0;
+    int current_time = 0;
+
+    // Calculate total time
+    for(int i = 0; i < n; i++)
+        total_time += proc[i].burst_time;
+
+    // Sort processes by arrival time initially
+    sort_by_priority(proc, n);
+
+    printf("\nPreemptive Priority Scheduling Gantt Chart:\n");
+    printf("0"); // Start at time 0
+    while(completed < n) {
+        int index = findHighestPriority(proc, n, current_time);
+        if(index == -1) {
+            current_time++;
+            continue;
+        }
+
+        printf(" -> [P%d] ", proc[index].pid);
+        current_time++;
+        proc[index].remaining_time--;
+
+        if(proc[index].remaining_time == 0) {
+            completed++;
+            proc[index].remaining_time = 9999; // Mark completed process
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process proc[n];
+    for(int i = 0; i < n; i++) {
+        printf("Enter Arrival Time for Process P%d: ", i+1);
+        scanf("%d", &proc[i].arrival_time);
+        printf("Enter Burst Time for Process P%d: ", i+1);
+        scanf("%d", &proc[i].burst_time);
+        printf("Enter Priority for Process P%d: ", i+1);
+        scanf("%d", &proc[i].priority);
+        proc[i].pid = i+1;
+        proc[i].remaining_time = proc[i].burst_time;
+    }
+
+    printf("\nProcess\tArrival Time\tBurst Time\tPriority\n");
+    for(int i = 0; i < n; i++) {
+        printf("P%d\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].arrival_time, proc[i].burst_time, proc[i].priority);
+    }
+
+    preemptive_priority_scheduling(proc, n);
+
+    return 0;
+}
