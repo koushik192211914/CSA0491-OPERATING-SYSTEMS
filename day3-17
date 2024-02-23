@@ -1,0 +1,71 @@
+#include <stdio.h>
+
+#define N 5
+#define M 3
+
+int allocation[N][M] = {{0, 1, 0}, {2, 0, 0}, {3, 0, 2}, {2, 1, 1}, {0, 0, 2}};
+int max[N][M] = {{7, 5, 3}, {3, 2, 2}, {9, 0, 2}, {4, 2, 2}, {5, 3, 3}};
+int need[N][M], available[M];
+int safe_sequence[N];
+int finish[N];
+int count = 0;
+
+void calculate_need() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+    }
+}
+
+int is_safe() {
+    int work[M];
+    for (int i = 0; i < M; i++) {
+        work[i] = available[i];
+    }
+    int flag = 1;
+    for (int i = 0; i < N; i++) {
+        finish[i] = 0;
+    }
+    while (flag) {
+        flag = 0;
+        for (int i = 0; i < N; i++) {
+            if (finish[i] == 0) {
+                int j;
+                for (j = 0; j < M; j++) {
+                    if (need[i][j] > work[j]) {
+                        break;
+                    }
+                }
+                if (j == M) {
+                    safe_sequence[count++] = i;
+                    for (int k = 0; k < M; k++) {
+                        work[k] += allocation[i][k];
+                    }
+                    finish[i] = 1;
+                    flag = 1;
+                }
+            }
+        }
+    }
+    if (count < N) {
+        return 0;
+    }
+    return 1;
+}
+
+int main() {
+    for (int i = 0; i < M; i++) {
+        available[i] = 3;
+    }
+    calculate_need();
+    if (is_safe() == 1) {
+        printf("Safe sequence is: ");
+        for (int i = 0; i < N; i++) {
+            printf("P%d ", safe_sequence[i]);
+        }
+    } else {
+        printf("System is in unsafe state.");
+    }
+    return 0;
+}
